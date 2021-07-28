@@ -1,5 +1,6 @@
 const inquirer = require('inquirer');
 const db = require('./db/connection');
+
 const cTable = require('console.table');
 
 const promptUser = () => {
@@ -21,6 +22,8 @@ const promptUser = () => {
         }
     ])
         .then(todo => {
+            console.log('todo', todo);
+
             if (todo === 'View all employees') {
                 return viewAll();
             }
@@ -29,7 +32,12 @@ const promptUser = () => {
 
 const viewAll = () => {
     const sql = `SELECT * FROM employee`;
-    console.table(sql);
+
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        console.log('result', result);
+        console.table(result);
+    });
 };
 
 promptUser();
