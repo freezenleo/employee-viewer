@@ -22,10 +22,18 @@ const promptUser = () => {
         }
     ])
         .then(todo => {
-            console.log('todo', todo);
-
-            if (todo === 'View all employees') {
+            if (todo.todo === 'View all employees') {
                 return viewAll();
+            }
+            else if (todo.todo === 'View all employees by department') {
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'department',
+                        message: 'Which department employees do you want to see?',
+                        choices: []
+                    }
+                ])
             }
         })
 }
@@ -35,10 +43,13 @@ const viewAll = () => {
 
     db.query(sql, (err, result) => {
         if (err) throw err;
-        console.log('result', result);
         console.table(result);
     });
 };
+
+const viewByDepartment = () => {
+    const sql = `S`
+}
 
 promptUser();
 
