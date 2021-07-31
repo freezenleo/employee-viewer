@@ -2,13 +2,12 @@ const inquirer = require('inquirer');
 const db = require('./db/connection');
 
 const cTable = require('console.table');
+const { values } = require('lodash');
+const { end } = require('./db/connection');
 
 let departmentResult = [];
-let managerResult = [];
-// let managerNone = managerResult;
-managerResult.push('None');
-console.log(managerResult);
-// console.log('here', managerNone);
+let managerResult = ['0 none'];
+let employeesResult = [];
 let roleResult = [];
 
 const promptUser = () => {
@@ -18,7 +17,7 @@ const promptUser = () => {
     ===========================================
     `);
 
-    return inquirer.prompt([
+    inquirer.prompt([
         {
             type: 'list',
             name: 'todo',
@@ -50,17 +49,18 @@ const promptUser = () => {
                     LEFT JOIN role on employee.role_id = role.id
                     LEFT JOIN department on role.department_id = department.id
                     WHERE department.id = ?;`
-                        let index = departmentResult.indexOf(data.department) + 1;
-                        db.query(sql, index, (err, result) => {
+
+                        let departmentId = [];
+                        departmentId = data.department.split(' ');
+                        db.query(sql, departmentId[0], (err, result) => {
                             if (err) throw err;
                             console.table(result);
+                            promptUser()
                         })
                     })
-                    .then(() => promptUser());
             }
 
             else if (todo.todo === 'View all employees by manager') {
-                console.log(managerResult);
                 inquirer.prompt([
                     {
                         type: 'list',
@@ -69,27 +69,33 @@ const promptUser = () => {
                         choices: managerResult
                     }
                 ])
-                    .then(data => {
-                        console.log('pass', data);
+                    .then(employeeData => {
                         const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department
                                     FROM employee
                                     LEFT JOIN role on employee.role_id = role.id
                                     LEFT JOIN department on role.department_id = department.id
                                     WHERE manager_id = ?;`;
 
-                        let index = managerResult.indexOf(data.managerName) + 1;
+                        let managerId = [];
+                        managerId = employeeData.managerName.split(' ');
 
-                        console.log('number', index);
-                        db.query(sql, index, (err, result) => {
-                            if (err) throw err;
-                            console.table(result);
-                        })
+                        if (managerId[0] <= 0) {
+                            console.log("\n");
+                            console.log('No manager for this employee');
+                            promptUser();
+                        }
+                        else {
+                            db.query(sql, managerId[0], (err, result) => {
+                                if (err) throw err;
+                                console.log("\n");
+                                console.table(result);
+                                promptUser();
+                            })
+                        }
                     })
-                    .then(() => promptUser());
             }
 
             else if (todo.todo === 'Add employee') {
-
                 inquirer.prompt([
                     {
                         type: 'input',
@@ -111,55 +117,256 @@ const promptUser = () => {
                         type: 'list',
                         name: 'managerName',
                         message: `Who is the employee's manager?`,
-                        choices: managerNone
+                        choices: managerResult
                     }
                 ])
                     .then(employeeData => {
-                        console.log(employeeData);
                         const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id)
                                         VALUES
                                         (?,?,?,?);`;
-                        let managerIndex = managerResult.indexOf(employeeData.managerName) + 1;
-                        let roleIndex = roleResult.indexOf(employeeData.role) + 1;
-                        if (managerIndex < 5) {
-                            const params = [employeeData.firstName, employeeData.lastName, roleIndex, managerIndex];
+                        let roleId = [];
+                        let managerId = [];
+                        roleId = employeeData.role.split(' ');
+                        managerId = employeeData.managerName.split(' ');
+
+                        if (managerId[0] = 0) {
+                            const params = [employeeData.firstName, employeeData.lastName, roleId[0], NULL];
+
                             db.query(sql, params, (err, result) => {
                                 if (err) throw err;
-                                console.log(`Added ${employeeData.firstName} ${employeeData.lastName} to the database`)
+                                console.log("\n");
+                                console.log(`Added ${employeeData.firstName} ${employeeData.lastName} to the database`);
+                                promptUser();
                             })
                         }
                         else {
-                            const params = [employeeData.firstName, employeeData.lastName, roleIndex, NULL];
-                            console.log('params', params);
+                            const params = [employeeData.firstName, employeeData.lastName, roleId[0], managerId[0]];
                             db.query(sql, params, (err, result) => {
                                 if (err) throw err;
-                                console.log(`Added ${employeeData.firstName} ${employeeData.lastName} to the database`)
+                                console.log("\n");
+                                console.log(`Added ${employeeData.firstName} ${employeeData.lastName} to the database`);
+                                promptUser();
                             })
                         }
+
                     })
                     .then(() => promptUser());
             }
 
             else if (todo.todo === 'Remove employee') {
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'name',
+                        message: 'Which employee do you want to remove?',
+                        choices: employeesResult
+                    }
+                ])
+                    .then(employeeData => {
+                        let str = [];
+                        str = employeeData.name.split(' ');
+                        const sql = `DELETE FROM employee WHERE employee.id = ${str[0]};`;
+
+                        db.query(sql, (err, result) => {
+                            if (err) throw err;
+                            console.log("\n");
+                            console.log(`Deleted ${employeeData.name} form the database`);
+                            promptUser();
+                        })
+
+                    })
 
             }
 
             else if (todo.todo === 'Update employee role') {
+                console.log('rolelist', roleResult);
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'name',
+                        message: 'Which employee do you want to update role?',
+                        choices: employeesResult
+                    },
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: 'Which role do you want to update to?',
+                        choices: roleResult
+                    }
+                ])
+                    .then(employeeData => {
+                        let str = [];
+                        let roleId = [];
+                        str = employeeData.name.split(' ');
+                        roleId = employeeData.role.split(' ');
 
+
+                        const sql = `UPDATE employee SET role_id = ${roleId[0]} WHERE employee.id = ${str[0]};`;
+                        console.log('person', sql);
+                        db.query(sql, (err, result) => {
+                            if (err) throw err;
+                            console.log("\n");
+                            console.log(`Updated ${employeeData.name} role to ${employeeData.role}form the database`);
+                            promptUser();
+                        })
+                    })
             }
 
             else if (todo.todo === 'Update employee manager') {
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'name',
+                        message: 'Which employee do you want to update role?',
+                        choices: employeesResult
+                    },
+                    {
+                        type: 'list',
+                        name: 'manager',
+                        message: 'Which manager do you want to update to for this employee?',
+                        choices: managerResult
+                    }
+                ])
+                    .then(employeeData => {
+                        let employeeId = [];
+                        let managerId = [];
+                        employeeId = employeeData.name.split(' ');
+                        managerId = employeeData.manager.split(' ');
 
+                        const sql = `UPDATE employee SET manager_id = ${managerId[0]} WHERE employee.id = ${employeeId[0]};`;
+
+                        db.query(sql, (err, result) => {
+                            if (err) throw err;
+                            console.log("\n");
+                            console.log(`Updated ${employeeData.name} manager to ${employeeData.manager}form the database`);
+                            promptUser();
+                        })
+                    })
             }
 
             else if (todo.todo === 'Add department') {
+                inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'addDepartment',
+                        message: 'What department do you want to add?'
+                    }
+                ])
+                    .then(departmentData => {
+                        const sql = `INSERT INTO department (name)
+                                    VALUES (?);`;
 
+                        const params = [departmentData.addDepartment];
+                        db.query(sql, params, (err, result) => {
+                            if (err) throw err;
+                            console.log('\n');
+                            console.log(`Added ${departmentData.addDepartment} to department table`);
+                            promptUser();
+                        })
+                    })
             }
 
             else if (todo.todo === 'Remove department') {
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'department',
+                        message: 'What department do you want to remove?',
+                        choices: departmentResult
+                    }
+                ])
+                    .then(departmentData => {
+                        let departmentId = [];
+                        departmentId = departmentData.department.split(' ');
+
+                        const sql = `DELETE FROM department WHERE id = ${departmentId[0]};`;
+
+                        db.query(sql, (err, result) => {
+                            if (err) throw err;
+                            console.log("\n");
+                            console.log(`Deleted ${departmentData.department} from department table`);
+                            promptUser();
+                        })
+                    })
+            }
+
+            else if (todo.todo === 'Remove role') {
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'role',
+                        message: 'What role do you want to remove?',
+                        choices: roleResult
+                    }
+                ])
+                    .then(roleData => {
+                        let roleId = [];
+                        roleId = roleData.role.split(' ');
+
+                        const sql = `DELETE FROM role WHERE id = ${roleId[0]};`;
+
+                        db.query(sql, (err, result) => {
+                            if (err) throw err;
+                            console.log("\n");
+                            console.log(`Deleted ${roleData.role} from role table`);
+                            promptUser();
+                        })
+                    })
+            }
+
+            else if (todo.todo === 'Add role') {
+                inquirer.prompt([
+                    {
+                        type: 'input',
+                        name: 'role',
+                        message: 'What role do you want to add?'
+                    },
+                    {
+                        type: 'input',
+                        name: 'salary',
+                        message: 'What is the salary for this role?'
+                    },
+                    {
+                        type: 'list',
+                        name: 'department',
+                        message: 'Which department does this role belong to?',
+                        choices: departmentResult
+                    }
+                ])
+                    .then(roleData => {
+                        const sql = `INSERT INTO role (title, salary, department_id)
+                                    VALUES (?,?,?);`;
+
+                        let departmentId = [];
+                        departmentId = roleData.department.split(' ');
+
+                        const params = [roleData.role, roleData.salary, roleData.department[0]];
+                        db.query(sql, params, (err, result) => {
+                            if (err) throw err;
+                            console.log("\n");
+                            console.log(`Added ${roleData.role} to role table`);
+                            promptUser();
+                        })
+                    })
 
             }
+
+            else if (todo.todo === 'View total utilized budget by department') {
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'department',
+                        message: 'Which department totle utilized budget do you want to see?',
+                        choices: departmentResult
+                    }
+                ])
+            }
+
+            else if (todo.todo === 'Quit') {
+                db.end();
+            }
         })
+
 }
 
 //get all employees info
@@ -172,13 +379,14 @@ const viewAll = () => {
 
     db.query(sql, (err, result) => {
         if (err) throw err;
+        console.log("\n");
         console.table(result);
     });
 };
 
 //get a list of department name in an array
 const departmentName = () => {
-    const sql = `SELECT name from department`;
+    const sql = `SELECT CONCAT(id, ' ', name) AS name from department`;
 
     db.query(sql, (err, result) => {
         if (err) throw err;
@@ -192,7 +400,7 @@ departmentName();
 
 //get a list of manager in an array
 const viewByManager = () => {
-    const sql = `SELECT CONCAT(first_name, ' ', last_name) AS manager_name
+    const sql = `SELECT CONCAT(id, ' ', first_name, ' ', last_name) AS manager_name
                 FROM employee 
                 WHERE manager_id is NULL;`;
 
@@ -208,10 +416,11 @@ viewByManager();
 
 //get employee roles array
 const roleList = () => {
-    const sql = `SELECT title From role`;
+    const sql = `SELECT CONCAT(id, ' ', title) AS title From role`;
 
     db.query(sql, (err, result) => {
         if (err) throw err;
+
         Object.keys(result).forEach(function (key) {
             var row = result[key];
             roleResult.push(row.title);
@@ -220,10 +429,26 @@ const roleList = () => {
 }
 roleList();
 
+//get a list of employees
+const employeesList = () => {
+    const sql = `SELECT CONCAT(id, ' ', first_name, ' ', last_name) AS name FROM employee;`;
+
+    db.query(sql, (err, result) => {
+        if (err) throw err;
+        Object.keys(result).forEach(function (key) {
+            var row = result[key];
+            employeesResult.push(row.name);
+        })
+    })
+}
+employeesList();
 
 
+
+//init the starting prompt
 promptUser();
 
+//connect to database
 db.connect(err => {
     if (err) throw err;
     console.log('Database connected');
