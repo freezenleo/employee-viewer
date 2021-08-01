@@ -5,33 +5,45 @@ const cTable = require('console.table');
 const { values } = require('lodash');
 const { end } = require('./db/connection');
 
+//init list of dpeartment names, manager names, employee names, and role names
 let departmentResult = [];
 let managerResult = ['0 none'];
 let employeesResult = [];
 let roleResult = [];
 
-const promptUser = () => {
-    console.log(`
+console.log(`
     ===========================================
                 Employee Manager
     ===========================================
     `);
 
+
+const promptUser = () => {
     inquirer.prompt([
         {
             type: 'list',
             name: 'todo',
             message: 'What would you like to do?',
             choices: ['View all employees', 'View all employees by department',
-                'View all employees by manager', 'Add employee', 'Remove employee',
+                'View all employees by manager', 'View department list', 'View role list', 'Add employee', 'Remove employee',
                 'Update employee role', 'Update employee manager', 'Add department', 'Remove department',
                 'Remove role', 'Add role', 'View total utilized budget by department', 'Quit']
         }
     ])
         .then(todo => {
             if (todo.todo === 'View all employees') {
-                viewAll();
-                promptUser();
+                const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
+                FROM employee 
+                LEFT JOIN role on employee.role_id = role.id 
+                LEFT JOIN department on role.department_id = department.id 
+                LEFT JOIN employee manager on manager.id = employee.manager_id;`;
+
+                db.query(sql, (err, result) => {
+                    if (err) throw err;
+                    console.log("\n");
+                    console.table(result);
+                    promptUser();
+                });
             }
 
             else if (todo.todo === 'View all employees by department') {
@@ -93,6 +105,26 @@ const promptUser = () => {
                             })
                         }
                     })
+            }
+
+            else if (todo.todo === 'View department list') {
+                const sql = `SELECT * FROM department`
+
+                db.query(sql, (err, result) => {
+                    console.log('\n');
+                    console.table(result);
+                    promptUser();
+                })
+            }
+
+            else if (todo.todo === 'View role list') {
+                const sql = `SELECT id, title FROM role`
+
+                db.query(sql, (err, result) => {
+                    console.log('\n');
+                    console.table(result);
+                    promptUser();
+                })
             }
 
             else if (todo.todo === 'Add employee') {
@@ -352,14 +384,17 @@ const promptUser = () => {
             }
 
             else if (todo.todo === 'View total utilized budget by department') {
-                inquirer.prompt([
-                    {
-                        type: 'list',
-                        name: 'department',
-                        message: 'Which department totle utilized budget do you want to see?',
-                        choices: departmentResult
-                    }
-                ])
+                const sql = `SELECT department.name AS department, SUM(role.salary) AS total_salary
+                                    FROM employee
+                                    LEFT JOIN role on employee.role_id = role.id
+                                    LEFT JOIN department on role.department_id = department.id
+                                    GROUP by department_id;`;
+
+                db.query(sql, (err, result) => {
+                    if (err) throw err;
+                    console.table(result);
+                    promptUser();
+                })
             }
 
             else if (todo.todo === 'Quit') {
@@ -369,20 +404,6 @@ const promptUser = () => {
 
 }
 
-//get all employees info
-const viewAll = () => {
-    const sql = `SELECT employee.id, employee.first_name, employee.last_name, role.title, department.name AS department, role.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager 
-                FROM employee 
-                LEFT JOIN role on employee.role_id = role.id 
-                LEFT JOIN department on role.department_id = department.id 
-                LEFT JOIN employee manager on manager.id = employee.manager_id;`;
-
-    db.query(sql, (err, result) => {
-        if (err) throw err;
-        console.log("\n");
-        console.table(result);
-    });
-};
 
 //get a list of department name in an array
 const departmentName = () => {
