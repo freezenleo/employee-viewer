@@ -94,6 +94,7 @@ const promptUser = () => {
                         if (managerId[0] <= 0) {
                             console.log("\n");
                             console.log('No manager for this employee');
+                            console.log("\n");
                             promptUser();
                         }
                         else {
@@ -162,27 +163,24 @@ const promptUser = () => {
                         roleId = employeeData.role.split(' ');
                         managerId = employeeData.managerName.split(' ');
 
-                        console.log('managerid', managerId);
-
                         if (managerId[0] === '0') {
-                            console.log('managerId', managerId[0]);
-
                             const params = [employeeData.firstName, employeeData.lastName, roleId[0], null];
 
                             db.query(sql, params, (err, result) => {
                                 if (err) throw err;
                                 console.log("\n");
                                 console.log(`Added ${employeeData.firstName} ${employeeData.lastName} to the database`);
+                                console.log("\n");
                                 promptUser();
                             })
                         }
                         else {
-                            console.log('role', managerId[0]);
                             const params = [employeeData.firstName, employeeData.lastName, roleId[0], managerId[0]];
                             db.query(sql, params, (err, result) => {
                                 if (err) throw err;
                                 console.log("\n");
                                 console.log(`Added ${employeeData.firstName} ${employeeData.lastName} to the database`);
+                                console.log("\n");
                                 promptUser();
                             })
                         }
@@ -199,14 +197,15 @@ const promptUser = () => {
                     }
                 ])
                     .then(employeeData => {
-                        let str = [];
-                        str = employeeData.name.split(' ');
-                        const sql = `DELETE FROM employee WHERE employee.id = ${str[0]};`;
+                        let employeeId = [];
+                        employeeId = employeeData.name.split(' ');
+                        const sql = `DELETE FROM employee WHERE employee.id = ${employeeId[0]};`;
 
                         db.query(sql, (err, result) => {
                             if (err) throw err;
                             console.log("\n");
                             console.log(`Deleted ${employeeData.name} form the database`);
+                            console.log("\n");
                             promptUser();
                         })
 
@@ -215,7 +214,6 @@ const promptUser = () => {
             }
 
             else if (todo.todo === 'Update employee role') {
-                console.log('rolelist', roleResult);
                 inquirer.prompt([
                     {
                         type: 'list',
@@ -231,18 +229,18 @@ const promptUser = () => {
                     }
                 ])
                     .then(employeeData => {
-                        let str = [];
+                        let employeeId = [];
                         let roleId = [];
-                        str = employeeData.name.split(' ');
+                        employeeId = employeeData.name.split(' ');
                         roleId = employeeData.role.split(' ');
 
-
-                        const sql = `UPDATE employee SET role_id = ${roleId[0]} WHERE employee.id = ${str[0]};`;
+                        const sql = `UPDATE employee SET role_id = ${roleId[0]} WHERE employee.id = ${employeeId[0]};`;
                         console.log('person', sql);
                         db.query(sql, (err, result) => {
                             if (err) throw err;
                             console.log("\n");
                             console.log(`Updated ${employeeData.name} role to ${employeeData.role}form the database`);
+                            console.log("\n");
                             promptUser();
                         })
                     })
@@ -275,6 +273,7 @@ const promptUser = () => {
                             if (err) throw err;
                             console.log("\n");
                             console.log(`Updated ${employeeData.name} manager to ${employeeData.manager}form the database`);
+                            console.log("\n");
                             promptUser();
                         })
                     })
@@ -297,6 +296,7 @@ const promptUser = () => {
                             if (err) throw err;
                             console.log('\n');
                             console.log(`Added ${departmentData.addDepartment} to department table`);
+                            console.log("\n");
                             promptUser();
                         })
                     })
@@ -321,6 +321,7 @@ const promptUser = () => {
                             if (err) throw err;
                             console.log("\n");
                             console.log(`Deleted ${departmentData.department} from department table`);
+                            console.log("\n");
                             promptUser();
                         })
                     })
@@ -345,6 +346,7 @@ const promptUser = () => {
                             if (err) throw err;
                             console.log("\n");
                             console.log(`Deleted ${roleData.role} from role table`);
+                            console.log("\n");
                             promptUser();
                         })
                     })
@@ -376,11 +378,12 @@ const promptUser = () => {
                         let departmentId = [];
                         departmentId = roleData.department.split(' ');
 
-                        const params = [roleData.role, roleData.salary, roleData.department[0]];
+                        const params = [roleData.role, roleData.salary, departmentId[0]];
                         db.query(sql, params, (err, result) => {
                             if (err) throw err;
                             console.log("\n");
                             console.log(`Added ${roleData.role} to role table`);
+                            console.log("\n");
                             promptUser();
                         })
                     })
