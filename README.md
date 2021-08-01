@@ -10,7 +10,10 @@ Run npm install first to install all require packages. Then enter your mysql dat
  * After you created the employeeviewer database, you can return to normal terminal and run "npm start" or "node index.js" to run the apllication
  * A prompt will ask you what you want to do, you can choose the options you like there
  * Newly created or updated data needs to exit the application and run npm start again for them to excuted.
+</br>
+![image](https://user-images.githubusercontent.com/81452611/127779056-fccc5e03-a5bb-44d5-82c2-f5007495a3eb.png)
 
+</br>
  Here is a link to a walkthrough video at youtube: https://youtu.be/mqUTHBr0RiE
  </br>
  or here at google: https://drive.google.com/file/d/1Ij_Ty3hGQ0hBmic4bUt8dh7MyAf3NCOR/view
