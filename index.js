@@ -494,6 +494,7 @@ const roleList = () => {
             var row = result[key];
             roleResult.push(row.title);
         })
+
     })
 }
 roleList();

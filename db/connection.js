@@ -1,8 +1,9 @@
-const mysql = require('mysql2');
+
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 //connect to database
-const db = mysql.createConnection(
+const db = await mysql.createConnection(
     {
         host: 'localhost',
         //Your MySQL username,

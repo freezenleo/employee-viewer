@@ -1,3 +1,5 @@
+USE employeeviewer;
+
 INSERT INTO department (name)
 VALUES
 ('Sales'),
