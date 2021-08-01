@@ -108,7 +108,7 @@ const promptUser = () => {
             }
 
             else if (todo.todo === 'View department list') {
-                const sql = `SELECT * FROM department`
+                const sql = `SELECT * FROM department`;
 
                 db.query(sql, (err, result) => {
                     console.log('\n');
@@ -118,7 +118,7 @@ const promptUser = () => {
             }
 
             else if (todo.todo === 'View role list') {
-                const sql = `SELECT id, title FROM role`
+                const sql = `SELECT * FROM role`;
 
                 db.query(sql, (err, result) => {
                     console.log('\n');
@@ -158,11 +158,16 @@ const promptUser = () => {
                                         (?,?,?,?);`;
                         let roleId = [];
                         let managerId = [];
+
                         roleId = employeeData.role.split(' ');
                         managerId = employeeData.managerName.split(' ');
 
-                        if (managerId[0] = 0) {
-                            const params = [employeeData.firstName, employeeData.lastName, roleId[0], NULL];
+                        console.log('managerid', managerId);
+
+                        if (managerId[0] === '0') {
+                            console.log('managerId', managerId[0]);
+
+                            const params = [employeeData.firstName, employeeData.lastName, roleId[0], null];
 
                             db.query(sql, params, (err, result) => {
                                 if (err) throw err;
@@ -172,6 +177,7 @@ const promptUser = () => {
                             })
                         }
                         else {
+                            console.log('role', managerId[0]);
                             const params = [employeeData.firstName, employeeData.lastName, roleId[0], managerId[0]];
                             db.query(sql, params, (err, result) => {
                                 if (err) throw err;
@@ -180,9 +186,7 @@ const promptUser = () => {
                                 promptUser();
                             })
                         }
-
                     })
-                    .then(() => promptUser());
             }
 
             else if (todo.todo === 'Remove employee') {
