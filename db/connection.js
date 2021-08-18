@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise');
 require('dotenv').config();
 
 //connect to database
-const db = await mysql.createConnection(
+const db = mysql.createConnection(
     {
         host: 'localhost',
         //Your MySQL username,
@@ -16,3 +16,28 @@ const db = await mysql.createConnection(
 );
 
 module.exports = db;
+
+// const mysql = require('mysql');
+// class Database {
+//     constructor(config) {
+//         this.connection = mysql.createConnection(config);
+//     }
+//     query(sql, args) {
+//         return new Promise((resolve, reject) => {
+//             this.connection.query(sql, args, (err, rows) => {
+//                 if (err)
+//                     return reject(err);
+//                 resolve(rows);
+//             });
+//         });
+//     }
+//     close() {
+//         return new Promise((resolve, reject) => {
+//             this.connection.end(err => {
+//                 if (err)
+//                     return reject(err);
+//                 resolve();
+//             });
+//         });
+//     }
+// }

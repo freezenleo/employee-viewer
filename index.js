@@ -504,6 +504,7 @@ const employeesList = () => {
     const sql = `SELECT CONCAT(id, ' ', first_name, ' ', last_name) AS name FROM employee;`;
 
     db.query(sql, (err, result) => {
+        console.log('employeelist', result);
         if (err) throw err;
         Object.keys(result).forEach(function (key) {
             var row = result[key];
